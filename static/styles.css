@@ -71,34 +71,8 @@ h3 {
 	border-color: #aaaaaa;
 	color: red;
 }
-.glyphicon {
-	margin-right: 10px;
-}
-.top-catalog {
-	padding-top: 30px;
-	padding-bottom: 30px;
-	background: blue;
-}
-.top-catalog p {
-	margin-bottom: 0;
-	line-height: 16px;
-}
-.top-catalog a {
-	margin-bottom: 0;
-	line-height: 16px;
-	font-size: 16px;
-	color: #1b315e;
-	font-weight: 400;
-}
-.divider {
-	height: 15px;
-}
-.divider.blue {
-	background-color: #42C3C9;
-}
-.divider.green {
-	background-color: #9FB80A;
-}
+
+
 .banner.main {
 	height: 150px;
 	background: url("/static/top-banner.jpg");
@@ -122,17 +96,8 @@ h3 {
  	padding: 20px;
 u }
  .category-list:hover {
- 	background-color: #e1e17f;
+
  	padding: 20px;
-}
-.menu-item {
-	background: #F0F0F0;
-	padding: 20px;
-	margin: 20px;
-	margin-left: -20px;
-}
-.menu-price {
-	font-weight: 700;
 }
 .creator {
 	padding-right: 20px;
@@ -161,4 +126,17 @@ u }
 	list-style-type: none;
 	text-align: center;
 
+}
+
+body {
+    background-color: #f2dede;
+    margin: 0px;
+}
+.topnav {
+    background-color: #5bd2de;
+    border-bottom: solid;
+    padding-bottom: 20px;
+    margin: 0px;
+    padding-left: 15px;
+    padding-top: 5px;
 }

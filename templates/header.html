@@ -1,11 +1,16 @@
-<div class="row top-menu">
-	<div class="col-md-6">
-		<a href="{{url_for('showCategory')}}">
-			<span class="glyphicon glyphicon-home" aria-hidden="true"></span>Show All Restaurants
-		</a>
-	</div>
-	<div class="col-md-6 text-right">
-					<p>Login Link will go Here </p>
-		
-	</div>
+<head>
+	<link href='http://fonts.googleapis.com/css?family=Roboto:400,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<div class="topnav">
+	<h1> Catalog </h1>
+	<a class="active" href="{{url_for('showCategory')}}"><button class="button">Home</button></a>
+	<a href="{{url_for('showLogin')}}" >	<button class="button">Login</button></a>
+	<a href="{{url_for('gdisconnect')}}" >	<button class="button">Logout</button></a>
+</div>
+<div class="container">
+    {% block content %}
+    {% endblock %}
 </div>

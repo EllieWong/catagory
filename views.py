@@ -1,7 +1,7 @@
 import httplib2 as httplib2
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash, make_response, json
 from flask import session as login_session
-import random, string,requests
+import random, string, requests
 
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
@@ -10,8 +10,7 @@ from models import Base, User, Category, Item
 # IMPORTS FOR THIS STEP
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
-# import google.oauth2.credentials
-# import google_auth_oauthlib.flow
+
 # Connect to Database and create database session
 engine = create_engine('sqlite:///cagegory.db')
 Base.metadata.bind = engine
@@ -28,8 +27,9 @@ SCOPES = [
     # Add other requested scopes.
 ]
 
+
 # Create anti-forgery state token
-@app.route('/login/',methods=['GET', 'POST'])
+@app.route('/login/', methods=['GET', 'POST'])
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
@@ -38,7 +38,8 @@ def showLogin():
     # return "The current session state is %s" % login_session['state']
     return render_template('login.html', STATE=state)
 
-@app.route('/gconnect', methods=['GET','POST'])
+
+@app.route('/gconnect', methods=['GET', 'POST'])
 def gconnect():
     # Validate state token
     if request.args.get('state') != login_session['state']:
@@ -50,12 +51,11 @@ def gconnect():
     print code
     try:
         # Upgrade the authorization code into a credentials object
-        # oauth_flow = google.oauth2.credentials.Flow.flow_from_clientsecrets('client_secrets.json', scope='https://www.googleapis.com/auth/analytics.readonly')
-        oauth_flow = flow_from_clientsecrets('client_secrets.json',scope='')
+        oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
 
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
-    except Exception:
+    except FlowExchangeError:
         response = make_response(
             json.dumps('Failed to upgrade the authorization code.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -68,6 +68,7 @@ def gconnect():
            % access_token)
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
+
     # If there was an error in the access token info, abort.
     if result.get('error') is not None:
         response = make_response(json.dumps(result.get('error')), 500)
@@ -116,7 +117,7 @@ def gconnect():
     user_id = getUserID(login_session['email'])
     if not user_id:
         user_id = createUser(login_session)
-    login_session['user_id']=user_id
+    login_session['user_id'] = user_id
 
     output = ''
     output += '<h1>Welcome, '
@@ -129,14 +130,16 @@ def gconnect():
     print "done!"
     return output
 
+
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
-                   'email'], picture=login_session['picture'])
+        'email'], picture=login_session['picture'])
     session.add(newUser)
     session.commit()
     user = session.query(User).filter_by(email=login_session['email']).one()
     print user
     return user.id
+
 
 def getUserInfo(user_id):
     user = session.query(User).filter_by(id=user_id).one()
@@ -183,35 +186,104 @@ def gdisconnect():
 
 
 @app.route('/')
+@app.route('/home')
 @app.route('/catalog/')
 def showCategory():
-    DBSession = sessionmaker(bind=engine)
+    """
+            Home page of application
+        """
     session = DBSession()
-    categores = session.query(Category).all()
-    return render_template('publicatalog.html', categores=categores)
+    categores = session.query(Category).order_by(Category.name)
+    latest_items = session.query(Item).order_by(Item.id)[0:10]
+    return render_template('publicatalog.html', categores=categores, items=latest_items)
 
 
 @app.route('/catalog/<string:cat_name>/items/')
 def showItems(cat_name):
-    DBSession = sessionmaker(bind=engine)
+    """
+        Generate page for a single category
+    """
     session = DBSession()
     category = session.query(Category).filter_by(name=cat_name).one()
+    categores = session.query(Category).order_by(Category.name)
     items = session.query(Item).filter_by(category_id=category.id).all()
 
-    return render_template('publicItems.html', items=items, cat_name=cat_name)
+    return render_template('publicItems.html', items=items, cat_name=cat_name, categores=categores)
 
 
 @app.route('/catalog/<string:cat_name>/<string:item_name>/')
 def showItem(cat_name, item_name):
-    if 'username' not in login_session:
-        flash('You must be logged in to edit an item!')
-        return redirect('/')
-    DBSession = sessionmaker(bind=engine)
+    """
+        Generate page for a single item
+    """
     session = DBSession()
     category = session.query(Category).filter_by(name=cat_name).one()
-    item = session.query(Item).filter(Item.category_id== category.id, Item.title == item_name).one()
+    item = session.query(Item).filter(Item.category_id == category.id, Item.title == item_name).one()
 
     return render_template('publicitem.html', item=item, cat_name=cat_name)
+
+
+@app.route('/catalog/addItem', methods=['GET', 'POST'])
+def addItem():
+    """
+            sends a post form to client to be able to add
+            new item to catalog
+    """
+    # if 'username' not in login_session:
+    #     flash('You must be logged in to view add item!')
+    #     return redirect('/home')
+
+    session = DBSession()
+    # Process form from client to add item
+    if request.method=='POST':
+        cat_id = session.query(Category) \
+            .filter_by(name=request.form['category']) \
+            .one() \
+            .id
+        new_item = Item(title=request.form['name'],
+                        description=request.form['description'],
+                        user_id=getUserID(login_session['email']),
+                        category_id=cat_id)
+        session.add(new_item)
+        session.commit()
+        flash("Added New Item: {}".format(new_item.name))
+        return redirect(url_for('home'))
+    else:
+        cat_names = [cat.name for cat in session.query(Category).all()]
+        return render_template('addItem.html',cat_list=cat_names)
+
+
+@app.route('/catalog/<cat_name>/<item_name>/edit',methods=['GET','POST'])
+def editItem(cat_name,item_name):
+    """
+            sends a post form to client to be able to edit
+            a item to catalog
+    """
+    # if 'username' not in login_session:
+    #     flash('You must be logged in to view add item!')
+    #     return redirect('/home')
+
+    session = DBSession()
+    category = session.query(Category).filter_by(name=cat_name).one()
+    item_to_edit = session.query(Item).filter(Item.category_id == category.id, Item.title == item_name).one()
+
+    # Verify if logged in user can edit item
+    item_user_id = session.query(User).filter_by(id=item_to_edit.user_id) \
+        .one() \
+        .id
+    if 'user_id' not in login_session or login_session['user_id'] != item_user_id:
+        flash("You do not have permission to edit: {}"
+              .format(item_to_edit.title))
+
+        return url_for('editItem',cat_name=cat_name,item_name=item_name)
+    # Process form from client to edit item
+
+    if request.method=='POST':
+
+        return ''
+    else:
+        cat_names = [i.name for i in session.query(Category).all()]
+        return render_template('editItem.html',item=item_to_edit,cat_name=cat_name,cat_list=cat_names)
 
 
 if __name__ == '__main__':
