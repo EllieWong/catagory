@@ -36,11 +36,11 @@ class User(Base):
 class Item(Base):
     __tablename__ = 'item'
     id = Column(Integer, primary_key=True)
-    title = Column(String(250), nullable=False)
+    title = Column(String(250), nullable=False,unique=True)
     description = Column(String(250))
     category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
-    user_id = Column(Integer, ForeignKey('user.id'))
+    user_id = Column(Integer, ForeignKey('user.id'),nullable=False)
     user = relationship(User)
     create_time = Column(TIMESTAMP,nullable=False,server_default=text("current_timestamp"))
 

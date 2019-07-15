@@ -229,9 +229,9 @@ def addItem():
             sends a post form to client to be able to add
             new item to catalog
     """
-    # if 'username' not in login_session:
-    #     flash('You must be logged in to view add item!')
-    #     return redirect('/home')
+    if 'username' not in login_session:
+        flash('You must be logged in to view add item!')
+        return redirect('/home')
 
     session = DBSession()
     # Process form from client to add item
@@ -240,14 +240,15 @@ def addItem():
             .filter_by(name=request.form['category']) \
             .one() \
             .id
+        print getUserID(login_session['email'])
         new_item = Item(title=request.form['name'],
                         description=request.form['description'],
                         user_id=getUserID(login_session['email']),
                         category_id=cat_id)
         session.add(new_item)
         session.commit()
-        flash("Added New Item: {}".format(new_item.name))
-        return redirect(url_for('home'))
+        flash("Added New Item: {}".format(new_item.title))
+        return redirect('/home')
     else:
         cat_names = [cat.name for cat in session.query(Category).all()]
         return render_template('addItem.html',cat_list=cat_names)
@@ -259,18 +260,18 @@ def editItem(cat_name,item_name):
             sends a post form to client to be able to edit
             a item to catalog
     """
-    # if 'username' not in login_session:
-    #     flash('You must be logged in to view add item!')
-    #     return redirect('/home')
+    if 'username' not in login_session:
+        flash('You must be logged in to view add item!')
+        return redirect('/home')
 
     session = DBSession()
     category = session.query(Category).filter_by(name=cat_name).one()
+    print category.id
+    print item_name
     item_to_edit = session.query(Item).filter(Item.category_id == category.id, Item.title == item_name).one()
-
+    print item_to_edit.user_id
     # Verify if logged in user can edit item
-    item_user_id = session.query(User).filter_by(id=item_to_edit.user_id) \
-        .one() \
-        .id
+    item_user_id = session.query(User).filter_by(id=item_to_edit.user_id).one().id
     if 'user_id' not in login_session or login_session['user_id'] != item_user_id:
         flash("You do not have permission to edit: {}"
               .format(item_to_edit.title))
