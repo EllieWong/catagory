@@ -1,24 +1,32 @@
 {% include "header.html" %}
 
 <div class="center-div">
-	<div class="description-container">
+    <div class="description-container">
 
-		<h2> Edit Item </h2>
-		<form action= "{{url_for('editItem',cat_name=cat_name,item_name=item.title)}}" method = 'POST'>
+        <h2> Edit Item </h2>
+        <form action="{{url_for('editItem',cat_name=cat_name,item_name=item.title)}}" method='POST'>
 
-			<p>Name</p>
-			<input type = 'text' size='30' name = 'name' required value="{{item.title}}">
+            <p>Name</p>
+            <input type='text' size='30' name='name' required value="{{item.title}}">
 
-			<p>Description</p>
-			<input type = 'text' size='250' style= "height: 200px; width: 600px" name = 'description' required value="{{item.description}}">
+            <p>Description</p>
+            <textarea rows="6" style="width: 400px; height: 150px" name='description' required>{{item.description}}</textarea>
 
-			<p>Category</p>
-			<li name = 'category'>{{cat_name}}</li>
+            <p>Category</p>
+            <select name='category' default="{{cat_name}}">
+                {% for cName in cat_names %}
+                {% if cName==cat_name %}
+                <option value='{{cName}}' selected="selected">{{cName}}</option>
+                {% else %}
+                <option value='{{cName}}'>{{cName}}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
 
-			<br> <br>
-
-			<input type='submit' value='Edit'>
-		</form>
-<a href="{{url_for('showItem',cat_name=cat_name,item_name=item.title)}}">Cancel</a>
-	</div>
+            <div class="row btn-action justify-content-center">
+                <input type='submit' value='Edit' class="btn btn-primary">
+                <a href="{{url_for('showItem',cat_name=cat_name,item_name=item.title)}}" class="btn btn-primary">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>

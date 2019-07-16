@@ -1,3 +1,6 @@
+import thread
+import time
+
 import httplib2 as httplib2
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash, make_response, json
 from flask import session as login_session
@@ -240,14 +243,15 @@ def addItem():
             .filter_by(name=request.form['category']) \
             .one() \
             .id
+        print getUserID(login_session['email'])
         new_item = Item(title=request.form['name'],
                         description=request.form['description'],
                         user_id=getUserID(login_session['email']),
                         category_id=cat_id)
         session.add(new_item)
         session.commit()
-        flash("Added New Item: {}".format(new_item.name))
-        return redirect(url_for('home'))
+        flash("Added New Item: {}".format(new_item.title))
+        return redirect('/home')
     else:
         cat_names = [cat.name for cat in session.query(Category).all()]
         return render_template('addItem.html',cat_list=cat_names)
@@ -265,25 +269,73 @@ def editItem(cat_name,item_name):
 
     session = DBSession()
     category = session.query(Category).filter_by(name=cat_name).one()
+    print category.id
+    print item_name
     item_to_edit = session.query(Item).filter(Item.category_id == category.id, Item.title == item_name).one()
-
+    print item_to_edit.user_id
     # Verify if logged in user can edit item
-    item_user_id = session.query(User).filter_by(id=item_to_edit.user_id) \
-        .one() \
-        .id
-    if 'user_id' not in login_session or login_session['user_id'] != item_user_id:
-        flash("You do not have permission to edit: {}"
-              .format(item_to_edit.title))
-
-        return url_for('editItem',cat_name=cat_name,item_name=item_name)
+    # item_user_id = session.query(User).filter_by(id=item_to_edit.user_id).one().id
+    # if 'user_id' not in login_session or login_session['user_id'] != item_user_id:
+    #     flash("You do not have permission to edit: {}"
+    #           .format(item_to_edit.title))
+    #
+    #     return url_for('editItem',cat_name=cat_name,item_name=item_name)
     # Process form from client to edit item
 
     if request.method=='POST':
+        if request.form['name']:
+            item_to_edit.title=request.form['name']
+        if request.form['description']:
+            item_to_edit.description=request.form['description']
+        if request.form['category']:
+            cat_id = session.query(Category).filter_by(name=request.form['category']).one().id
+            item_to_edit.category_id=cat_id
+        session.add(item_to_edit)
+        session.commit()
+        flash("Edited Item: {} Done!".format(item_to_edit.title))
 
-        return ''
+        return redirect(url_for('showItem',cat_name=request.form['category'], item_name=item_to_edit.title))
     else:
         cat_names = [i.name for i in session.query(Category).all()]
-        return render_template('editItem.html',item=item_to_edit,cat_name=cat_name,cat_list=cat_names)
+        return render_template('editItem.html',item=item_to_edit,cat_name=cat_name,cat_names=cat_names)
+
+
+@app.route('/catalog/<cat_name>/<item_name>/delete/',methods=['GET','POST'])
+def deleteItem(cat_name,item_name):
+    """
+                sends a post form to client to be able to delete
+                a item from catalog
+        """
+    # if 'username' not in login_session:
+    #     flash('You must be logged in to view add item!')
+    #     return redirect('/home')
+
+    session = DBSession()
+    category = session.query(Category).filter_by(name=cat_name).one()
+    item_to_delete = session.query(Item).filter(Item.category_id == category.id, Item.title == item_name).one()
+
+    # Verify if logged in user can edit item
+    # item_user_id = session.query(User).filter_by(id=item_to_edit.user_id).one().id
+    # if 'user_id' not in login_session or login_session['user_id'] != item_user_id:
+    #     flash("You do not have permission to edit: {}"
+    #           .format(item_to_edit.title))
+    #
+    #     return url_for('editItem',cat_name=cat_name,item_name=item_name)
+    # Process form from client to edit item
+
+    if request.method == 'POST':
+        session.delete(item_to_delete)
+        session.commit()
+        flash("Delete Item: {} from {}, Done!".format(item_to_delete.title,cat_name))
+        return redirect(url_for('showItems', cat_name=cat_name))
+    else:
+        return render_template('deleteItem.html', item=item_to_delete, cat_name=cat_name)
+
+@app.route('/catalog.json/')
+def catalogJson():
+    session = DBSession()
+    all_data = session.query(Category)
+    return jsonify(categories=[cat.serialize for cat in all_data.all()])
 
 
 if __name__ == '__main__':

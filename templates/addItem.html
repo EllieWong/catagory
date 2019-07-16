@@ -1,28 +1,30 @@
 {% include "header.html" %}
 
 <div class="center-div">
-	<div class="description-container">
+    <div class="description-container">
 
-		<h2> Add Item </h2>
-		<form action= "{{url_for('addItem')}}" method = 'POST'>
+        <h2> Add Item </h2>
+        <form action="{{url_for('addItem')}}" method='POST'>
 
-			<p>Name</p>
-			<input type = 'text' size='30' name = 'name' required>
+            <p>Name</p>
+            <input type='text' size='30' name='name' required>
 
-			<p>Description</p>
-			<input type = 'text' size='250' style= "height: 200px; width: 600px" name = 'description' required>
+            <p>Description</p>
+            <textarea rows="6" style="width: 400px; height: 150px" name='description' required></textarea>
 
-			<p>Category</p>
-			<select name = 'category' required>
-				{% for category in cat_list %}
-				<option value='{{category}}'>{{category}}</option>
-				{% endfor %}
-			</select>
+            <p>Category</p>
+            <select name='category' required>
+                {% for category in cat_list %}
+                <option value='{{category}}'>{{category}}</option>
+                {% endfor %}
+            </select>
 
-			<br> <br>
+            <div class="row btn-action justify-content-center">
+                <input type='submit' value='Add' class="btn btn-primary">
+                <a href="{{url_for('showCategory')}}" class="btn btn-primary"
+                   target="_self">Cancel</a>
+            </div>
+        </form>
+    </div>
 
-			<input type='submit' value='Add'>
-		</form>
-
-	</div>
 </div>

@@ -1,27 +1,6 @@
-{% extends "main.html" %}
-{% block content %}
 {% include "header.html" %}
 
-<div class="row divider green">
-    <div class="col-md-12"></div>
-</div>
-<div class="row banner menu">
-    <div class="col-md-11 col-md-offset-1 padding-none">
-        <h1>{{item.title}}
-        </h1>
-
-    </div>
-    <div class="edit">
-         <a href={{url_for('editItem',cat_name=cat_name,item_name=item.title)}}> Edit item </a>
-    </div>
-</div>
-<div class="row padding-top padding-bottom">
-    <div class="col-md-1"></div>
-    <div class="col-md-11 padding-none">
-
-    </div>
-    <div class="col-md-7"></div>
-</div>
+{% if items !=[] %}
 <div class="row">
     <div class="col-md-12">
         {% with messages = get_flashed_messages() %}
@@ -35,20 +14,21 @@
         {% endwith %}
     </div>
 </div>
-{% if items !=[] %}
-<div class="row">
-    <div class="col-md-10">
+{% endif %}
 
 
-        <!--							<div class="menu-item">-->
+<div class="items">
+    <h2>{{item.title}}</h2>
 
-        <h3>Description: {{item.description}}</h3>
-        <!--							</div>-->
-
-
+    <div class="row">
+        <div class="col-md-10 cagegory-list">
+            <h3>Description: {{item.description}}</h3>
+        </div>
     </div>
 
-    <div class="col-md-1"></div>
+    <div class="row btn-action justify-content-center">
+        <a href={{url_for('editItem',cat_name=cat_name,item_name=item.title)}} class="btn btn-primary">Edit</a>
+        <a href={{url_for('deleteItem',cat_name=cat_name,item_name=item.title)}} class="btn btn-primary">Delete</a>
+    </div>
+
 </div>
-{% endif %}
-{% endblock %}

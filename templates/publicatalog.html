@@ -16,25 +16,32 @@
 </div>
 
 
-    <div class="grid-container">
-        <div class="catagory">
-            <h3> Categories </h3>
-            {% for category in categores %}
-                <div class="row">
-                    <div class="col-md-10 cagegory-list">
-                        <h3><a href="{{url_for('showItems',cat_name=category.name)}}">{{category.name}}</a></h3>
-                    </div>
+<div class="grid-container">
+    <div class="catagory">
+        <h2> Categories </h2>
+        {% for category in categores %}
+        <div class="row">
+            <div class="col-md-10 cagegory-list">
+                <h3><a href="{{url_for('showItems',cat_name=category.name)}}">{{category.name}}</a></h3>
+            </div>
 
-                </div>
-            {% endfor %}
         </div>
+        {% endfor %}
+    </div>
 
-        <div class="latestItems">
+    <div class="items">
+<!--        <div class="addItem">-->
             <a href={{url_for('addItem')}}> Add New item </a>
-            <h3>Latest Items</h3>
-                {% for item in items %}
-            <a href="/catalog/{{(item.category).name}}/{{item.title}}"><h3>{{item.title}}</h3></a>
-            {% endfor %}
+<!--        </div>-->
+        <h2>Latest Items</h2>
+        {% for item in items %}
+        <div class="row">
+            <div class="col-md-10 cagegory-list">
+
+                <h3><a href="/catalog/{{(item.category).name}}/{{item.title}}">{{item.title}}</a></h3>
+            </div>
+        </div>
+        {% endfor %}
 
     </div>
 </div>
